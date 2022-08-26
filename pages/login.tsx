@@ -1,19 +1,19 @@
 import React from "react";
 import { NextPage } from "next";
+import { useErrorHandler } from "react-error-boundary";
+
 import { useAuth } from "../context/AuthContext";
-import { useRouter } from "next/router";
-import Routes from "../utils/Routes";
-import { withPublic } from "../hook/auth";
+import { withPublic } from "../hooks/auth";
 
 const Login: NextPage = () => {
   const { signInWithGoogle } = useAuth();
-  const router = useRouter();
+  const handleError = useErrorHandler();
+
   const signIn = async () => {
     try {
       await signInWithGoogle();
-      router.push(Routes.HOME);
     } catch (e: any) {
-      console.log("error", e);
+      handleError(e);
     }
   };
   return (
