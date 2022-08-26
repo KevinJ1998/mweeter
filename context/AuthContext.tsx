@@ -5,9 +5,18 @@ import {
   signInWithPopup,
   signOut,
 } from "@firebase/auth";
-import { addDoc, collection, doc, getDoc, setDoc } from "@firebase/firestore";
+import { doc, getDoc, setDoc } from "@firebase/firestore";
+import { useErrorHandler } from "react-error-boundary";
 
 import { auth, db } from "../config/firebase.config";
+
+export type User = {
+  name: string;
+  email: string;
+  uid?: string;
+  photo: string;
+  uniqueId: string;
+} | null;
 
 const AuthContext = createContext<any>({});
 
@@ -18,7 +27,8 @@ export const AuthContextProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const [user, setUser] = useState<any>(null);
+  const handleError = useErrorHandler();
+  const [user, setUser] = useState<any>();
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -33,6 +43,7 @@ export const AuthContextProvider = ({
           displayName: user.providerData[0].displayName,
           email: user.providerData[0].email,
           uid: user.uid,
+          photo: user.providerData[0].photoURL,
           uniqueId,
         });
       } else {
@@ -47,7 +58,7 @@ export const AuthContextProvider = ({
   const signInWithGoogle = async () => {
     const googleProvider = new GoogleAuthProvider();
     const { user: userAuth } = await signInWithPopup(auth, googleProvider);
-    const usersSnap = await getDoc(doc(db, "users", `${user.uid}`));
+    const usersSnap = await getDoc(doc(db, "users", `${userAuth.uid}`));
 
     if (!usersSnap.exists()) {
       try {
@@ -56,7 +67,7 @@ export const AuthContextProvider = ({
           splitName?.length != undefined && splitName.length > 1
             ? `@${splitName![0][0].toLowerCase()}${splitName![1].toLowerCase()}`
             : `@${userAuth.providerData[0].displayName?.toLowerCase()}`;
-        await setDoc(doc(db, "users", `${user.uid}`), {
+        await setDoc(doc(db, "users", `${userAuth.uid}`), {
           email: userAuth.providerData[0].email,
           name: userAuth.providerData[0].displayName || "",
           photo: userAuth.providerData[0].photoURL || "",
@@ -64,7 +75,7 @@ export const AuthContextProvider = ({
         });
         setUser({ ...user, uniqueId });
       } catch (e: any) {
-        console.log("error", e);
+        handleError(e);
       }
     }
   };
@@ -76,7 +87,7 @@ export const AuthContextProvider = ({
 
   return (
     <AuthContext.Provider value={{ user, logout, signInWithGoogle }}>
-      {loading ? "Loading" : children}
+      {loading ? <h1>Loading...</h1> : children}
     </AuthContext.Provider>
   );
 };

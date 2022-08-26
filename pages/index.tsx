@@ -1,13 +1,24 @@
+import React, { useEffect, useState } from "react";
 import type { NextPage } from "next";
 import styles from "../styles/Home.module.css";
 import Head from "next/head";
 import Image from "next/image";
+import { onSnapshot } from "@firebase/firestore";
+import { useErrorHandler } from "react-error-boundary";
 import { useForm, SubmitHandler } from "react-hook-form";
 
-import { addMweet } from "../services/firebase.service";
-import { useAuth } from "../context/AuthContext";
+import {
+  addFollower,
+  addMweet,
+  getAllUsers,
+  getFollowers,
+  queryMweetsByUser,
+  Mweet,
+  Follower,
+} from "../services/firebase.service";
+import { useAuth, User } from "../context/AuthContext";
 import { useRouter } from "next/router";
-import { withProtected } from "../hook/auth";
+import { withProtected } from "../hooks/auth";
 
 import Routes from "../utils/Routes";
 
@@ -16,34 +27,109 @@ type FormValues = {
 };
 
 const Home: NextPage = () => {
+  const { user, logout } = useAuth();
   const {
     formState: { errors },
     handleSubmit,
     register,
+    reset,
   } = useForm<FormValues>();
-  const { user, logout } = useAuth();
+  const handleError = useErrorHandler();
   const router = useRouter();
+  const [followers, setFollowers] = useState<Follower[]>([]);
+  const [mweets, setMweets] = useState<Mweet[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
 
-  // console.log("user", user);
-
-  const signOut = async () => {
+  const follow = async (follower: User) => {
     try {
-      await logout();
-      router.push(Routes.LOGIN);
-    } catch (e: any) {
-      console.log("error", e);
+      await addFollower(user.uid, {
+        userId: follower?.uid,
+        name: follower?.name!,
+        photo: follower?.photo!,
+        email: follower?.email!,
+        uniqueId: follower?.uniqueId!,
+      });
+    } catch (e) {
+      handleError(e);
     }
   };
 
   const sendMweet: SubmitHandler<FormValues> = async ({ mweet }) => {
-    console.log("value", mweet);
     try {
-      await addMweet({ content: mweet, uid: user.uid });
-      console.log("mweet saved check firestore");
+      await addMweet({ text: mweet, uid: user.uid });
+      reset();
     } catch (e: any) {
-      console.log("error", e);
+      handleError(e);
     }
   };
+
+  const signOut = async () => {
+    try {
+      await logout();
+    } catch (e: any) {
+      handleError(e);
+    }
+  };
+
+  const renderMweets = (mweet: Mweet, index: number) => (
+    <li key={index}>
+      {mweet.text}
+      {user.uniqueId}
+    </li>
+  );
+
+  const renderUsers = (user: User, index: number) => {
+    const isFollowing =
+      followers.filter((follower) => follower.userId === user?.uid).length > 0;
+    return (
+      <div key={index}>
+        <div>
+          <div>{user?.name}</div>
+          <div>{user?.uniqueId}</div>
+        </div>
+        <div>
+          <button onClick={() => follow(user)} disabled={isFollowing}>
+            {isFollowing ? "following" : "follow"}
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  useEffect(() => {
+    const getUsersData = async () => {
+      const usersArr: User[] = [];
+      const followersArr: Follower[] = [];
+      const [usersSnap, followersSnap] = await Promise.all([
+        getAllUsers(),
+        getFollowers(user.uid),
+      ]);
+
+      usersSnap.forEach((userDoc) => {
+        if (userDoc.id !== user.uid) {
+          usersArr.push({ ...userDoc.data(), uid: userDoc.id } as User);
+        }
+      });
+
+      followersSnap.forEach((followerDoc) => {
+        followersArr.push({ ...followerDoc.data() } as Follower);
+      });
+
+      setUsers(usersArr);
+      setFollowers(followersArr);
+    };
+    const unsubscribe = onSnapshot(queryMweetsByUser(user.uid), (snapshot) => {
+      const mweetsArr: Mweet[] = [];
+      snapshot.forEach((mweet) => {
+        mweetsArr.push({ ...mweet.data() } as Mweet);
+      });
+      setMweets(mweetsArr);
+    });
+    getUsersData();
+
+    return () => unsubscribe();
+  }, [user]);
+
   return (
     <div className={styles.container}>
       <Head>
@@ -69,6 +155,11 @@ const Home: NextPage = () => {
           <button type={"submit"}>Send</button>
         </form>
       </div>
+      <div>
+        <ul>{mweets.map(renderMweets)}</ul>
+      </div>
+
+      <section>{users.map(renderUsers)}</section>
     </div>
   );
 };
