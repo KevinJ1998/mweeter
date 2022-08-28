@@ -1,6 +1,6 @@
 import React from "react";
 
-const ErrorFallback = ({ error, resetErrorBoundary }: any) => {
+const ErrorFallback: React.FC<any> = ({ error, resetErrorBoundary }) => {
   return (
     <div role="alert">
       <p>Something went wrong:</p>

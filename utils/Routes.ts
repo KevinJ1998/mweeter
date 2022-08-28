@@ -4,6 +4,8 @@ const publicRoutes = {
 
 const privateRoutes = {
   HOME: "/",
+  PROFILE: "/profile",
+  FOLLOWING: "/following",
 };
 
 const Routes = Object.freeze({

@@ -5,6 +5,7 @@ import toast, { Toaster } from "react-hot-toast";
 
 import { AuthContextProvider } from "../context/AuthContext";
 import ErrorFallback from "../components/ErrorFallback";
+import SideBar from "../components/SideBar";
 
 function MyApp({ Component, pageProps }: AppProps) {
   const errorHandler = (error: Error, info: { componentStack: string }) => {
@@ -15,6 +16,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   return (
     <AuthContextProvider>
       <ErrorBoundary FallbackComponent={ErrorFallback} onError={errorHandler}>
+        <SideBar />
         <Component {...pageProps} />
       </ErrorBoundary>
       <Toaster />

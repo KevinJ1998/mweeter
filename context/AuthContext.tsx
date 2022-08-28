@@ -5,10 +5,11 @@ import {
   signInWithPopup,
   signOut,
 } from "@firebase/auth";
-import { doc, getDoc, setDoc } from "@firebase/firestore";
+import { doc, setDoc } from "@firebase/firestore";
 import { useErrorHandler } from "react-error-boundary";
 
 import { auth, db } from "../config/firebase.config";
+import { getUserById } from "../services/firebase.service";
 
 export type User = {
   name: string;
@@ -32,19 +33,12 @@ export const AuthContextProvider = ({
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        const splitName = user.providerData[0].displayName?.split(" ");
-        const uniqueId =
-          splitName?.length != undefined && splitName.length > 1
-            ? `@${splitName![0][0].toLowerCase()}${splitName![1].toLowerCase()}`
-            : `@${user.providerData[0].displayName?.toLowerCase()}`;
+        const userDoc = await getUserById(user.uid);
         setUser({
-          displayName: user.providerData[0].displayName,
-          email: user.providerData[0].email,
+          ...userDoc.data(),
           uid: user.uid,
-          photo: user.providerData[0].photoURL,
-          uniqueId,
         });
       } else {
         setUser(null);
@@ -58,11 +52,11 @@ export const AuthContextProvider = ({
   const signInWithGoogle = async () => {
     const googleProvider = new GoogleAuthProvider();
     const { user: userAuth } = await signInWithPopup(auth, googleProvider);
-    const usersSnap = await getDoc(doc(db, "users", `${userAuth.uid}`));
+    const usersSnap = await getUserById(userAuth.uid);
 
     if (!usersSnap.exists()) {
       try {
-        const splitName = user.providerData[0].displayName?.split(" ");
+        const splitName = userAuth.providerData[0].displayName?.split(" ");
         const uniqueId =
           splitName?.length != undefined && splitName.length > 1
             ? `@${splitName![0][0].toLowerCase()}${splitName![1].toLowerCase()}`
@@ -73,7 +67,6 @@ export const AuthContextProvider = ({
           photo: userAuth.providerData[0].photoURL || "",
           uniqueId,
         });
-        setUser({ ...user, uniqueId });
       } catch (e: any) {
         handleError(e);
       }
