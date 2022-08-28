@@ -5,8 +5,9 @@ import { useErrorHandler } from "react-error-boundary";
 
 import { useAuth } from "../context/AuthContext";
 import { withPublic } from "../hooks/auth";
-import MweeterLogo from "../components/MweeterLogo";
 import GoogleIcon from "../components/GoogleIcon";
+import MicrosoftIcon from "../components/MicrosoftIcon";
+import MweeterLogo from "../components/MweeterLogo";
 
 const Login: NextPage = () => {
   const { signInWithGoogle, sigInWithMicrosoft } = useAuth();
@@ -70,8 +71,8 @@ const Login: NextPage = () => {
             onClick={logInWithMicrosoft}
             disabled={loading}
           >
-            <GoogleIcon />
-            <p className={"ml-1 self-center text-gray-500"}>
+            <MicrosoftIcon />
+            <p className={"ml-2 self-center text-gray-500"}>
               Sign In with Microsoft
             </p>
           </button>
