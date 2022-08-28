@@ -1,5 +1,6 @@
 import React from "react";
 import { NextPage } from "next";
+import Head from "next/head";
 import { useErrorHandler } from "react-error-boundary";
 import { useForm, SubmitHandler } from "react-hook-form";
 import toast from "react-hot-toast";
@@ -39,6 +40,10 @@ const Profile: NextPage = () => {
 
   return (
     <div className={"ml-64 p-10"}>
+      <Head>
+        <title>Mweeter - Profile</title>
+        <link rel="icon" href="/mweeter-logo.ico" />
+      </Head>
       <p className={"text-2xl font-bold"}>Your Profile</p>
       <div className={"mt-5"}>
         <form onSubmit={handleSubmit(updateInfo)}>

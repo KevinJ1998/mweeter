@@ -20,7 +20,7 @@ const UserCard: React.FC<UserCardProps> = ({
       <div className={"w-1/4"}>
         <Image
           className="rounded-full"
-          src={user?.photo!}
+          src={user?.photo || "/blank-profile-picture.png"}
           alt={user?.name}
           width={35}
           height={35}

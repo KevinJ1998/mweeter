@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { NextPage } from "next";
+import Head from "next/head";
 import { onSnapshot } from "@firebase/firestore";
 import { useErrorHandler } from "react-error-boundary";
 
@@ -59,12 +60,18 @@ const Following: NextPage = () => {
   }, [currentUser]);
 
   return (
-    <div className={"ml-64 p-10"}>
-      <p className={"text-2xl font-bold"}>People you follow</p>
-      <div className={"mt-3.5 w-3/5 flex grid grid-cols-2 gap-2 space-x-4"}>
-        {following.map(renderFollowingUsers)}
+    <>
+      <Head>
+        <title>Mweeter - Following</title>
+        <link rel="icon" href="/mweeter-logo.ico" />
+      </Head>
+      <div className={"ml-64 p-10"}>
+        <p className={"text-2xl font-bold"}>People you follow</p>
+        <div className={"mt-3.5 w-3/5 flex grid grid-cols-2 gap-2 space-x-4"}>
+          {following.map(renderFollowingUsers)}
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

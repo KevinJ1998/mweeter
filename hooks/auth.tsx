@@ -3,6 +3,7 @@ import { NextComponentType } from "next";
 import { useRouter } from "next/router";
 import { useAuth } from "../context/AuthContext";
 import Routes from "../utils/Routes";
+import Loading from "../components/Loading";
 
 type NexComponentTypeExt = NextComponentType & {
   auth?: any;
@@ -14,7 +15,7 @@ export function withPublic(Component: NexComponentTypeExt) {
     const router = useRouter();
     if (auth.user) {
       router.replace(Routes.HOME);
-      return <h1>Loading...</h1>;
+      return <Loading />;
     }
 
     return <Component auth={auth} {...props} />;
@@ -27,7 +28,7 @@ export function withProtected(Component: NexComponentTypeExt) {
     const router = useRouter();
     if (!auth.user) {
       router.replace(Routes.LOGIN);
-      return <h1>Loading...</h1>;
+      return <Loading />;
     }
 
     return <Component auth={auth} {...props} />;

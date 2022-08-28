@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import {
   GoogleAuthProvider,
+  OAuthProvider,
   onAuthStateChanged,
   signInWithPopup,
   signOut,
@@ -10,12 +11,13 @@ import { useErrorHandler } from "react-error-boundary";
 
 import { auth, db } from "../config/firebase.config";
 import { getUserById } from "../services/firebase.service";
+import Loading from "../components/Loading";
 
 export type User = {
   name: string;
   email: string;
   uid?: string;
-  photo: string;
+  photo?: string;
   uniqueId: string;
 } | null;
 
@@ -73,14 +75,40 @@ export const AuthContextProvider = ({
     }
   };
 
+  const sigInWithMicrosoft = async () => {
+    const microsoftProvider = new OAuthProvider("microsoft.com");
+    const { user: userAuth } = await signInWithPopup(auth, microsoftProvider);
+    const usersSnap = await getUserById(userAuth.uid);
+
+    if (!usersSnap.exists()) {
+      try {
+        const splitName = userAuth.providerData[0].displayName?.split(" ");
+        const uniqueId =
+          splitName?.length != undefined && splitName.length > 1
+            ? `@${splitName![0][0].toLowerCase()}${splitName![1].toLowerCase()}`
+            : `@${userAuth.providerData[0].displayName?.toLowerCase()}`;
+        await setDoc(doc(db, "users", `${userAuth.uid}`), {
+          email: userAuth.providerData[0].email,
+          name: userAuth.providerData[0].displayName || "",
+          photo: userAuth.providerData[0].photoURL || "",
+          uniqueId,
+        });
+      } catch (e: any) {
+        handleError(e);
+      }
+    }
+  };
+
   const logout = async () => {
     setUser(null);
     await signOut(auth);
   };
 
   return (
-    <AuthContext.Provider value={{ user, logout, signInWithGoogle }}>
-      {loading ? <h1>Loading...</h1> : children}
+    <AuthContext.Provider
+      value={{ user, logout, signInWithGoogle, sigInWithMicrosoft }}
+    >
+      {loading ? <Loading /> : children}
     </AuthContext.Provider>
   );
 };

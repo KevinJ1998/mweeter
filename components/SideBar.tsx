@@ -11,6 +11,7 @@ import Routes from "../utils/Routes";
 import HomeIcon from "./HomeIcon";
 import LogOutIcon from "./LogOutIcon";
 import LikeIcon from "./LikeIcon";
+import ProfileIcon from "./ProfileIcon";
 
 const SIDE_BAR_OPTIONS = [
   {
@@ -26,7 +27,7 @@ const SIDE_BAR_OPTIONS = [
   {
     name: "Your Profile",
     link: Routes.PROFILE,
-    icon: <HomeIcon />,
+    icon: <ProfileIcon />,
   },
 ];
 
@@ -84,7 +85,7 @@ const SideBar: React.FC = () => {
             <div className={"mt-4 ml-5 flex items-center space-x-2"}>
               <Image
                 className="rounded-full hover:cursor-pointer"
-                src={user.photo}
+                src={user.photo || "/blank-profile-picture.png"}
                 width={35}
                 height={35}
                 alt={user.name}

@@ -9,8 +9,8 @@ import SideBar from "../components/SideBar";
 
 function MyApp({ Component, pageProps }: AppProps) {
   const errorHandler = (error: Error, info: { componentStack: string }) => {
-    toast(error.message);
-    console.error("Error", info);
+    toast.error("Looks like something is broken, try again");
+    console.error("Error => ", error, info);
   };
 
   return (
