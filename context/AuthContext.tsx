@@ -38,10 +38,25 @@ export const AuthContextProvider = ({
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         const userDoc = await getUserById(user.uid);
-        setUser({
-          ...userDoc.data(),
-          uid: user.uid,
-        });
+        if (userDoc.exists()) {
+          setUser({
+            ...userDoc.data(),
+            uid: user.uid,
+          });
+        } else {
+          const splitName = user.providerData[0].displayName?.split(" ");
+          const uniqueId =
+            splitName?.length != undefined && splitName.length > 1
+              ? `@${splitName![0][0].toLowerCase()}${splitName![1].toLowerCase()}`
+              : `@${user.providerData[0].displayName?.toLowerCase()}`;
+          setUser({
+            email: user.providerData[0].email,
+            name: user.providerData[0].displayName || "",
+            photo: user.providerData[0].photoURL || "",
+            uniqueId,
+            uid: user.uid,
+          });
+        }
       } else {
         setUser(null);
       }
